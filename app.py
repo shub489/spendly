@@ -1,7 +1,10 @@
-from flask import Flask, render_template
-from database.db import get_db, init_db, seed_db
+import sqlite3
+from flask import Flask, render_template, request, redirect, url_for
+from werkzeug.security import generate_password_hash
+from database.db import get_db, init_db, seed_db, create_user
 
 app = Flask(__name__)
+app.secret_key = "dev-secret-change-in-prod"
 
 with app.app_context():
     init_db()
@@ -27,9 +30,35 @@ def privacy():
     return render_template("privacy.html")
 
 
-@app.route("/register")
+@app.route("/register", methods=["GET", "POST"])
 def register():
-    return render_template("register.html")
+    if request.method == "GET":
+        return render_template("register.html")
+
+    name     = request.form.get("name", "").strip()
+    email    = request.form.get("email", "").strip()
+    password = request.form.get("password", "")
+
+    error = None
+    if not name or not email or not password:
+        error = "All fields are required."
+    elif len(password) < 8:
+        error = "Password must be at least 8 characters."
+
+    if error:
+        return render_template("register.html", error=error, name=name, email=email)
+
+    try:
+        create_user(name, email, generate_password_hash(password))
+    except sqlite3.IntegrityError:
+        return render_template(
+            "register.html",
+            error="An account with that email already exists.",
+            name=name,
+            email=email,
+        )
+
+    return redirect(url_for("login"))
 
 
 @app.route("/login")
