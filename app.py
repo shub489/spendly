@@ -102,7 +102,41 @@ def logout():
 
 @app.route("/profile")
 def profile():
-    return "Profile page — coming in Step 4"
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+
+    user = {
+        "name": "Demo User",
+        "email": "demo@spendly.com",
+        "initials": "DU",
+        "member_since": "January 2026",
+    }
+    stats = {
+        "total_spent": "6,299",
+        "txn_count": 8,
+        "top_category": "Shopping",
+    }
+    transactions = [
+        {"date": "2026-05-18", "description": "Parking charges — monthly", "category": "Other", "amount": "250"},
+        {"date": "2026-05-15", "description": "Shoes from Myntra", "category": "Shopping", "amount": "2,500"},
+        {"date": "2026-05-12", "description": "Netflix subscription", "category": "Entertainment", "amount": "799"},
+        {"date": "2026-05-10", "description": "Pharmacy — vitamins", "category": "Health", "amount": "600"},
+        {"date": "2026-05-07", "description": "Electricity bill", "category": "Bills", "amount": "1,200"},
+        {"date": "2026-05-05", "description": "Weekly grocery run", "category": "Food", "amount": "420"},
+        {"date": "2026-05-03", "description": "Ola cab to office", "category": "Transport", "amount": "350"},
+        {"date": "2026-05-01", "description": "Morning breakfast at cafe", "category": "Food", "amount": "180"},
+    ]
+    categories = [
+        {"name": "Shopping", "total": "2,500", "pct": 40},
+        {"name": "Bills", "total": "1,200", "pct": 19},
+        {"name": "Entertainment", "total": "799", "pct": 13},
+        {"name": "Health", "total": "600", "pct": 10},
+        {"name": "Food", "total": "600", "pct": 9},
+        {"name": "Transport", "total": "350", "pct": 6},
+        {"name": "Other", "total": "250", "pct": 3},
+    ]
+    return render_template("profile.html", user=user, stats=stats,
+                           transactions=transactions, categories=categories)
 
 
 @app.route("/expenses/add")
