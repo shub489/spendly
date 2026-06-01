@@ -19,6 +19,15 @@
     --border: #e4e1da;
     --border-soft: #eeebe4;
 
+    /* Category colours */
+    --cat-food: var(--accent);
+    --cat-transport: #5b7fa6;
+    --cat-bills: var(--accent-2);
+    --cat-health: #3c8c7e;
+    --cat-entertainment: #8b5e83;
+    --cat-shopping: #b5642e;
+    --cat-other: var(--ink-muted);
+
     --font-display: 'DM Serif Display', Georgia, serif;
     --font-body: 'DM Sans', system-ui, sans-serif;
 
