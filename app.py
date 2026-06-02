@@ -1,7 +1,10 @@
 import sqlite3
+from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
-from database.db import get_db, init_db, seed_db, create_user, get_user_by_email
+from database.db import (get_db, init_db, seed_db, create_user, get_user_by_email,
+                         get_user_by_id, get_expenses_by_user,
+                         get_expense_stats, get_category_breakdown)
 
 app = Flask(__name__)
 app.secret_key = "dev-secret-change-in-prod"
@@ -105,36 +108,23 @@ def profile():
     if not session.get("user_id"):
         return redirect(url_for("login"))
 
-    user = {
-        "name": "Demo User",
-        "email": "demo@spendly.com",
-        "initials": "DU",
-        "member_since": "January 2026",
-    }
-    stats = {
-        "total_spent": "6,299",
-        "txn_count": 8,
-        "top_category": "Shopping",
-    }
-    transactions = [
-        {"date": "2026-05-18", "description": "Parking charges — monthly", "category": "Other", "amount": "250"},
-        {"date": "2026-05-15", "description": "Shoes from Myntra", "category": "Shopping", "amount": "2,500"},
-        {"date": "2026-05-12", "description": "Netflix subscription", "category": "Entertainment", "amount": "799"},
-        {"date": "2026-05-10", "description": "Pharmacy — vitamins", "category": "Health", "amount": "600"},
-        {"date": "2026-05-07", "description": "Electricity bill", "category": "Bills", "amount": "1,200"},
-        {"date": "2026-05-05", "description": "Weekly grocery run", "category": "Food", "amount": "420"},
-        {"date": "2026-05-03", "description": "Ola cab to office", "category": "Transport", "amount": "350"},
-        {"date": "2026-05-01", "description": "Morning breakfast at cafe", "category": "Food", "amount": "180"},
-    ]
-    categories = [
-        {"name": "Shopping", "total": "2,500", "pct": 40},
-        {"name": "Bills", "total": "1,200", "pct": 19},
-        {"name": "Entertainment", "total": "799", "pct": 13},
-        {"name": "Health", "total": "600", "pct": 10},
-        {"name": "Food", "total": "600", "pct": 9},
-        {"name": "Transport", "total": "350", "pct": 6},
-        {"name": "Other", "total": "250", "pct": 3},
-    ]
+    # [SA1: FILL user block] ----------------------------------------
+    db_user = get_user_by_id(session["user_id"])
+    words = db_user["name"].split()
+    initials = "".join(w[0].upper() for w in words if w)[:2]
+    member_since = datetime.strptime(db_user["created_at"][:10], "%Y-%m-%d").strftime("%B %Y")
+    user = {"name": db_user["name"], "email": db_user["email"],
+            "initials": initials, "member_since": member_since}
+
+    # [SA2: FILL stats block] ---------------------------------------
+    stats = get_expense_stats(session["user_id"])
+
+    # [SA1: FILL transactions block] --------------------------------
+    transactions = get_expenses_by_user(session["user_id"])
+
+    # [SA3: FILL categories block] ----------------------------------
+    categories = get_category_breakdown(session["user_id"])
+
     return render_template("profile.html", user=user, stats=stats,
                            transactions=transactions, categories=categories)
 
