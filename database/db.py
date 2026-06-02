@@ -88,3 +88,67 @@ def get_user_by_email(email):
     ).fetchone()
     conn.close()
     return user
+
+
+# [SA1] ----------------------------------------------------------------
+def get_user_by_id(user_id):
+    conn = get_db()
+    user = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+    conn.close()
+    return user
+
+
+# [SA1] ----------------------------------------------------------------
+def get_expenses_by_user(user_id, limit=10):
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT date, description, category, amount FROM expenses "
+        "WHERE user_id = ? ORDER BY date DESC, created_at DESC LIMIT ?",
+        (user_id, limit),
+    ).fetchall()
+    conn.close()
+    return [
+        {"date": r["date"], "description": r["description"],
+         "category": r["category"], "amount": "{:,.0f}".format(r["amount"])}
+        for r in rows
+    ]
+
+
+# [SA2] ----------------------------------------------------------------
+def get_expense_stats(user_id):
+    conn = get_db()
+    agg = conn.execute(
+        "SELECT COALESCE(SUM(amount), 0) AS total_spent, COUNT(*) AS txn_count "
+        "FROM expenses WHERE user_id = ?",
+        (user_id,),
+    ).fetchone()
+    top = conn.execute(
+        "SELECT category FROM expenses WHERE user_id = ? "
+        "GROUP BY category ORDER BY SUM(amount) DESC LIMIT 1",
+        (user_id,),
+    ).fetchone()
+    conn.close()
+    return {
+        "total_spent": "{:,.0f}".format(agg["total_spent"]),
+        "txn_count": agg["txn_count"],
+        "top_category": top["category"] if top else "—",
+    }
+
+
+# [SA3] ----------------------------------------------------------------
+def get_category_breakdown(user_id):
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT category, SUM(amount) AS total FROM expenses "
+        "WHERE user_id = ? GROUP BY category ORDER BY total DESC",
+        (user_id,),
+    ).fetchall()
+    conn.close()
+    if not rows:
+        return []
+    grand_total = sum(r["total"] for r in rows)
+    return [
+        {"name": r["category"], "total": "{:,.0f}".format(r["total"]),
+         "pct": round(r["total"] / grand_total * 100) if grand_total else 0}
+        for r in rows
+    ]

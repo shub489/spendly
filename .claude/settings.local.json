@@ -3,7 +3,16 @@
     "allow": [
       "Bash(python app.py)",
       "Bash(python -c \"import werkzeug; print\\(werkzeug.__version__\\)\")",
-      "Bash(python *)"
+      "Bash(python *)",
+      "Read(//c/Users/USER/.claude/plugins/cache/agents-observe/agents-observe/0.9.10/skills/observe/**)",
+      "Bash(bash scripts/cli.sh start)",
+      "Bash(Get-ChildItem -Path \"D:\\\\Shubham\\\\Learn\\\\Claude Code\\\\expense-tracker\\\\expense-tracker\" -Recurse -Force)",
+      "Bash(Select-Object FullName)",
+      "Bash(Sort-Object FullName)",
+      "Bash(Get-ChildItem -Path \"D:\\\\Shubham\\\\Learn\\\\Claude Code\\\\expense-tracker\\\\expense-tracker\" -Recurse -File)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(sqlite3 *)",
+      "Bash(git add *)"
     ]
   }
 }
